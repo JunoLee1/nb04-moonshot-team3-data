@@ -6,10 +6,124 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ---------------------------------
+// User
+model User {
+  id  Int  @id @default(autoincrement())
+  email String @unique
+  password String 
+  nickname String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  image String
+  
+  member_id Int
+  members  Member   @relation(fields: [member_id], references: [id])
+  comments Comment[]
+}
+
+//--------------------------------------------------------------------
+// Member
+
+model Member{
+  id Int @id @default(autoincrement())
+  role String? 
+  joinedAt DateTime
+  users   User[]
+  tasks Task[]  
+  projects Project[]
+}
+
+//--------------------------------------------------------------------
+// Comment
+
+
+model Comment {
+  id          Int @id @default(autoincrement())
+  content     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user_id   Int
+  users     User      @relation(fields: [user_id], references: [id])
+}
+
+
+
+//--------------------------------------------------------------------
+// project
+
+model Project{
+  id          Int       @id @default(autoincrement())
+  name        String  
+  description String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tasks Task[]
+  creator_id Int
+  creator Member @relation(fields:[creator_id], references: [id])
+}
+
+//--------------------------------------------------------------------
+// task
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  content     String
+  start_year   Int
+  start_month  Int
+  start_day   Int
+  end_year    Int
+  end_month    Int
+  end_date     Int
+  taskStatus   Status @map("status")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  project_id  Int
+  member_id   Int
+  projects    Project  @relation(fields: [project_id], references: [id])
+  members     Member @relation(fields: [member_id], references: [id])
+  attachments  Attachment[]
+  tags         Tag[]
+}
+enum Status{
+  todo 
+  inprogress
+  done
+}
+
+//--------------------------------------------------------------------
+// Tag
+model Tag{
+  id          Int       @id @default(autoincrement())
+  name        String?
+  
+  task_id     Int
+  tasks       Task  @relation(fields: [task_id], references: [id])
+}
+
+//--------------------------------------------------------------------
+// Subtask
+model Subtask{
+  id          Int       @id @default(autoincrement())
+}
+
+//--------------------------------------------------------------------
+// Attachment
+
+model Attachment{
+    id          Int       @id @default(autoincrement())
+    url         String?   
+    name        String?
+    uploaded_at DateTime
+    task_id     Int
+    tasks       Task    @relation(fields: [task_id], references: [id])
 }
